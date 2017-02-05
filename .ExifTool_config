@@ -1,0 +1,14 @@
+# Specify default ExifTool option values
+# (see the Options function documentation for available options)
+%Image::ExifTool::UserDefined::Options = (
+    CoordFormat => '%+.6f',  # change default GPS coordinate format
+);
+%Image::ExifTool::UserDefined::Shortcuts = (
+    my => ['File:FileName', 'Model','DateTimeOriginal','EXIF:ISO',
+    'ShutterSpeed','Aperture', 'ExposureCompensation','EXIF:FocalLength','EXIF:WhiteBalance','ImageSize','Orientation',
+    'LensInfo','Composite:LensID','Lens','GPSAltitude',
+    'Composite:GPSLatitude','Composite:GPSLongitude','XMP:Rating','IPTC:Keywords'],
+    MyAlias => 'FocalLengthIn35mmFormat',
+);
+#------------------------------------------------------------------------------
+1;  #end
