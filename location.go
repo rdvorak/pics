@@ -1,17 +1,23 @@
 package main
 
-type item struct {
-	id       string
-	name     string
-	itemType string
-	x, y     string
+import (
+	"encoding/xml"
+	"fmt"
+)
+
+type Item struct {
+	XMLName  xml.Name `xml:"item"`
+	Id       string   `xml:"id,attr"`
+	Name     string   `xml:"name,attr"`
+	ItemType string   `xml:"type,attr"`
 }
-type mapyCzLocation struct {
-	rgeocode []item
+type MapyCzLocation struct {
+	XMLName  xml.Name `xml:"rgeocode"`
+	Rgeocode []Item
 }
 
 const (
-	xml string = `
+	data string = `
 <rgeocode label="část obce Karolinka, Karolinka, okres Vsetín" status="200" message="Ok">
 <item id="4349" name="Karolinka" type="ward" x="18.2400622383" y="49.3512769199"/>
 <item id="528" name="Karolinka" type="muni" x="18.2400622383" y="49.3512769199"/>
@@ -22,6 +28,14 @@ const (
 	link string = `https://api.mapy.cz/rgeocode?lat=49.3920400&lon=18.2485131`
 )
 
-func RgeocodeTest() {
+var loc MapyCzLocation
+
+func main() {
+	err := xml.Unmarshal([]byte(data), &loc)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		return
+	}
+	fmt.Printf("%v", loc.Rgeocode)
 
 }
