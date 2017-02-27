@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"strings"
 
 	"database/sql"
 
@@ -76,16 +77,16 @@ func (db *PictureDb) savePicture(p Picture) {
 	}
 }
 func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
-	var selection Gallery
-	selection.tags = make(map[string]int)
-	selection.pictures = make(map[string][]byte)
+	var sel Gallery
 	var sql string
-	for i := range tags {
+	var params string
+	for i, tag := range tags {
 		if i == 0 {
 			sql = "select picture_name from picture_tags where tag = ?"
 		} else if i < len(tags) {
 			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ?"
 		}
+		params = params + "&tag=" + tag.(string)
 	}
 	if sql == "" {
 		sql = "select picture_name, tag from picture_tags"
@@ -105,7 +106,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		if err != nil {
 			log.Fatal(err)
 		}
-		selection.tags[tag] = cnt
+		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cnt, Link: options.link + "/drilldown?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
 	}
 	err = rows.Err()
 	if err != nil {
@@ -123,11 +124,11 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		if err != nil {
 			log.Fatal(err)
 		}
-		selection.pictures[name] = []byte{}
+		sel.Images = append(sel.Images, Image{Image: name, Thumb: name})
 	}
 	err = rows.Err()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return selection
+	return sel
 }

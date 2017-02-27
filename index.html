@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+    <title>jQCloud</title>
+    <link rel="stylesheet" href="/jqcloud/jqcloud.css">
+
+    <script src="/jquery/jquery.min.js"></script>
+    <script src="/jqcloud/jqcloud.js"></script>
+    <style>
+      #cloud {
+        width: 1400px;
+        height: 1300px;
+      }
+    </style>
+
+	</head>
+	<body>
+    <div id="cloud"></div>
+	</body>
+    <script>
+      var words = {{.Tags}}
+      $('#cloud').jQCloud(words);
+     </script>
+</html>
