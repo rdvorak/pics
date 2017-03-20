@@ -5,21 +5,35 @@
     <title>jQCloud</title>
     <link rel="stylesheet" href="/jqcloud/jqcloud.css">
 
-    <script src="/jquery/jquery.min.js"></script>
+    <script src="/jquery/jquery-2.2.4.min.js"></script>
+    
     <script src="/jqcloud/jqcloud.js"></script>
+    <script src="/folio/galleria/galleria-1.4.7.min.js"></script>
     <style>
       #cloud {
         width: 1400px;
         height: 1300px;
       }
+      .galleria{ height: 432px; }
     </style>
 
 	</head>
 	<body>
     <div id="cloud"></div>
+    <div class="galleria"></div>
 	</body>
     <script>
+      
       var words = {{.Tags}}
       $('#cloud').jQCloud(words);
+      var images = {{.Images}}
+      $(window).on('load',
+      function() {
+        // Load the Folio theme
+        Galleria.loadTheme('/folio/galleria/themes/folio/galleria.folio.min.js');
+
+        // Initialize Galleria
+        Galleria.run('.galleria', { dataSource: images });
+    });
      </script>
 </html>

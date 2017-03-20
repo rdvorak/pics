@@ -48,6 +48,9 @@ func main() {
 	// }))
 	router.StaticFS("/jqcloud", http.Dir("jqcloud"))
 	router.StaticFS("/jquery", http.Dir("jquery"))
+	router.StaticFS("/folio", http.Dir("folio"))
+	router.StaticFS("/pics", http.Dir("/Users/rdvorak/Pictures"))
+
 	// router.StaticFS("/Bacovi-rodokmen", http.Dir("www/Bacovi-rodokmen"))
 	// router.LoadHTMLFiles("www/vp2.html")
 	// router.GET("/", func(c *gin.Context) {

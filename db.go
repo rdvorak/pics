@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"strings"
 
 	"database/sql"
@@ -94,26 +95,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ")"
 	}
 
-	rows, err := db.sess.Query("select tag, count(distinct picture_name) cnt from ("+sql+") group by tag", tags...)
-	if err != nil {
-		log.Println(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var tag string
-		var cnt int
-		err = rows.Scan(&tag, &cnt)
-		if err != nil {
-			log.Fatal(err)
-		}
-		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cnt, Link: options.link + "/drilldown?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rows, err = db.sess.Query("select distinct picture_name from ("+sql+")", tags...)
+	rows, err := db.sess.Query("select distinct picture_name from ("+sql+")", tags...)
 	if err != nil {
 		log.Println(err)
 	}
@@ -124,11 +106,36 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		if err != nil {
 			log.Fatal(err)
 		}
-		sel.Images = append(sel.Images, Image{Image: name, Thumb: name})
+		sel.Images = append(sel.Images, Image{Image: "/pics/" + name, Thumb: "/pics/" + name})
+		if len(sel.Images) > 100 {
+			break
+		}
 	}
 	err = rows.Err()
 	if err != nil {
 		log.Fatal(err)
 	}
+	if len(sel.Images) <= 100 {
+		sel.Tags = append(sel.Tags, Word{Text: "Gallery", Weight: 15, Link: options.link + "/show?" + strings.TrimPrefix(params, "&")})
+	}
+	rows, err = db.sess.Query("select tag, count(distinct picture_name) cnt from ("+sql+") group by tag", tags...)
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var tag string
+		var cnt float64
+		err = rows.Scan(&tag, &cnt)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: int(math.Trunc(math.Log(cnt))), Link: options.link + "/drilldown?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return sel
 }
