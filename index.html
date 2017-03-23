@@ -10,30 +10,43 @@
     <script src="/jqcloud/jqcloud.js"></script>
     <script src="/folio/galleria/galleria-1.4.7.min.js"></script>
     <style>
-      #cloud {
-        width: 1400px;
-        height: 1300px;
+      body {
+        /*background-color: black*/
       }
-      .galleria{ height: 432px; }
+      #cloud {
+        float:left;
+        width: 25%;
+        /*height: 1300px;*/
+        /*padding: 15px;*/
+      }
+      .galleria{ 
+        float:left;
+        width: 75%;
+        height: 1300px;
+       }
+       .w1{ color: green; font-size: 1em; padding: 5px }
+       .w3{ color: green; font-size: 3em; }
+       .w4{ color: green; font-size: 4em; }
+       .w5{ color: green; font-size: 5em; }
     </style>
 
 	</head>
 	<body>
-    <div id="cloud"></div>
     <div class="galleria"></div>
+    <div id="cloud">
+      {{range .Tags}}<a class="w1" href= {{ .Link}}>{{ .Text}}</a>{{end}}
+    </div>
 	</body>
     <script>
       
       var words = {{.Tags}}
-      $('#cloud').jQCloud(words);
+      // $('#cloud').jQCloud(words, {
+        //  steps: 8,
+        //  removeOverflowing: false,
+        // shape: 'rectangular',
+        // autoResize: true
+        // });
       var images = {{.Images}}
-      $(window).on('load',
-      function() {
-        // Load the Folio theme
-        Galleria.loadTheme('/folio/galleria/themes/folio/galleria.folio.min.js');
-
-        // Initialize Galleria
-        Galleria.run('.galleria', { dataSource: images });
-    });
+      // $(window).on('load', function() { Galleria.loadTheme('/folio/galleria/themes/folio/galleria.folio.min.js'); Galleria.run('.galleria', { dataSource: images }); });
      </script>
 </html>

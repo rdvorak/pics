@@ -9,8 +9,10 @@ import (
 )
 
 type Options struct {
-	monthName map[string]string
-	link      string
+	monthName       map[string]string
+	link            string
+	cloudTags       []string
+	descriptionTags []string
 }
 type Word struct {
 	Text   string `json:"text"`
@@ -34,7 +36,9 @@ var options Options
 
 func main() {
 	options.monthName = map[string]string{"01": "Leden", "02": "Únor", "03": "Březen", "04": "Duben", "05": "Květen", "06": "Červen", "07": "Červenec", "08": "Srpen", "09": "Září", "10": "Říjen", "11": "Listopad", "12": "Prosinec"}
-	options.link = "http://localhost:8081/gallery"
+	options.link = "/gallery"
+	options.cloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
+	options.descriptionTags = []string{"Rating", "Model", "Lens", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	db := pictureDb()
 	defer db.sess.Close()
 	// allGallery := db.drillByTags()
@@ -85,6 +89,9 @@ func main() {
 		}
 	})
 	router.LoadHTMLFiles("index.html")
+	router.GET("/gallery", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", db.drillByTags())
+	})
 	router.GET("/gallery/drilldown", func(c *gin.Context) {
 		var tags []interface{}
 		fmt.Println(c.QueryArray("tag"))

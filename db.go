@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"math"
+	"math/rand"
 	"strings"
 
 	"database/sql"
@@ -24,8 +25,10 @@ func pictureDb() PictureDb {
 	sqlStmt := `
 create table if not exists Pictures (
 	NAME text not null primary key,
+	FILENAME text,
 	METADATA	text,
-	NUM_METADATA	text
+	NUM_METADATA  text,
+	LOCATION text
 );
 create table if not exists Picture_Tags (
 	picture_name text not null ,
@@ -43,9 +46,9 @@ create unique index if not exists picture_tags_x2 on picture_tags (tag, picture_
 }
 func (db *PictureDb) savePicture(p Picture) {
 	if p.Metadata != nil {
-		stmt := `insert or replace into Pictures ( NAME, METADATA ) values( ?, ?)`
+		stmt := `insert or replace into Pictures ( NAME, FILENAME, METADATA ) values( ?, ?, ?)`
 		meta, _ := json.Marshal(p.Metadata)
-		_, err := db.sess.Exec(stmt, p.Name, meta)
+		_, err := db.sess.Exec(stmt, p.Name, p.Metadata.FileName, meta)
 		if err != nil {
 			log.Panicln(err)
 		}
@@ -61,6 +64,18 @@ func (db *PictureDb) savePicture(p Picture) {
 			log.Panicln(err)
 		}
 		_, err = db.sess.Exec(`delete from PICTURE_TAGS where picture_name = ? and source = 2`, p.Name)
+		if err != nil {
+			log.Panicln(err)
+		}
+	}
+
+	if p.Location != nil {
+		loc, _ := json.Marshal(p.Location)
+		_, err := db.sess.Exec(`update pictures set location = ? where name = ?`, loc, p.Name)
+		if err != nil {
+			log.Panicln(err)
+		}
+		_, err = db.sess.Exec(`delete from PICTURE_TAGS where picture_name = ? and (source = 3 or source is null)`, p.Name)
 		if err != nil {
 			log.Panicln(err)
 		}
@@ -81,49 +96,89 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	var sel Gallery
 	var sql string
 	var params string
+	var cloudTags string
+	if len(options.cloudTags) > 0 {
+		cloudTags = " and meta in ('" + strings.Join(options.cloudTags, "','") + "')"
+	}
 	for i, tag := range tags {
 		if i == 0 {
-			sql = "select picture_name from picture_tags where tag = ?"
+			sql = "select picture_name from picture_tags where tag = ?  " + cloudTags
 		} else if i < len(tags) {
-			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ?"
+			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ? " + cloudTags
 		}
 		params = params + "&tag=" + tag.(string)
 	}
 	if sql == "" {
-		sql = "select picture_name, tag from picture_tags"
+		sql = "select picture_name, tag from picture_tags where 1=1 " + cloudTags
 	} else {
-		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ")"
+		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ") " + cloudTags
 	}
 
-	rows, err := db.sess.Query("select distinct picture_name from ("+sql+")", tags...)
+	log.Println(sql)
+	rows, err := db.sess.Query("select name, filename from pictures where name in (select  picture_name from ("+sql+"))", tags...)
 	if err != nil {
 		log.Println(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var name string
-		err = rows.Scan(&name)
+		var name, filename, tag, desc string
+		err = rows.Scan(&name, &filename)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
-		sel.Images = append(sel.Images, Image{Image: "/pics/" + name, Thumb: "/pics/" + name})
-		if len(sel.Images) > 100 {
+		//predpokladame umisteni
+		//pro fotky:  2015/02/web/_DSC1212.jpg
+		//pro preview:  2015/02/thum/_DSC1212.jpg
+		webname := strings.Replace(name, filename, "web/"+filename, 1)
+		thumname := strings.Replace(name, filename, "thum/"+filename, 1)
+		// description
+		for _, meta := range options.descriptionTags {
+			rows2, err := db.sess.Query("select tag from picture_tags where  picture_name = ? and meta = ? ", name, meta)
+			if err != nil {
+				log.Println(err)
+			}
+			defer rows2.Close()
+			for rows2.Next() {
+				err = rows2.Scan(&tag)
+				if err != nil {
+					log.Println(err)
+				}
+				desc = desc + ", " + tag
+			}
+		}
+		sel.Images = append(sel.Images, Image{Image: "/pics/" + webname, Thumb: "/pics/" + thumname, Title: "", Description: strings.TrimPrefix(desc, ", ")})
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Println(err)
+	}
+	var sel2 []Image
+	// nahodne vybereme 100 obrazku
+	// fmt.Println("Images ", len(sel.Images))
+	for i, val := range rand.Perm(len(sel.Images)) {
+		sel2 = append(sel2, sel.Images[val])
+		if i > 100 {
 			break
 		}
 	}
+	// fmt.Println("Sel ", len(sel2))
+	sel.Images = sel2
 	err = rows.Err()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(sel.Images) <= 100 {
-		sel.Tags = append(sel.Tags, Word{Text: "Gallery", Weight: 15, Link: options.link + "/show?" + strings.TrimPrefix(params, "&")})
-	}
+	/*
+		if len(sel.Images) <= 100 {
+			sel.Tags = append(sel.Tags, Word{Text: "Gallery", Weight: 15, Link: options.link + "/show?" + strings.TrimPrefix(params, "&")})
+		}
+	*/
 	rows, err = db.sess.Query("select tag, count(distinct picture_name) cnt from ("+sql+") group by tag", tags...)
 	if err != nil {
 		log.Println(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
+
 		var tag string
 		var cnt float64
 		err = rows.Scan(&tag, &cnt)
