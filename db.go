@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"math"
 	"math/rand"
 	"strings"
 
@@ -96,22 +95,22 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	var sel Gallery
 	var sql string
 	var params string
-	var cloudTags string
-	if len(options.cloudTags) > 0 {
-		cloudTags = " and meta in ('" + strings.Join(options.cloudTags, "','") + "')"
+	var CloudTags string
+	if len(options.CloudTags) > 0 {
+		CloudTags = " and meta in ('" + strings.Join(options.CloudTags, "','") + "')"
 	}
 	for i, tag := range tags {
 		if i == 0 {
-			sql = "select picture_name from picture_tags where tag = ?  " + cloudTags
+			sql = "select picture_name from picture_tags where tag = ?  " + CloudTags
 		} else if i < len(tags) {
-			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ? " + cloudTags
+			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ? " + CloudTags
 		}
 		params = params + "&tag=" + tag.(string)
 	}
 	if sql == "" {
-		sql = "select picture_name, tag from picture_tags where 1=1 " + cloudTags
+		sql = "select picture_name, tag from picture_tags where 1=1 " + CloudTags
 	} else {
-		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ") " + cloudTags
+		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ") " + CloudTags
 	}
 
 	log.Println(sql)
@@ -172,7 +171,19 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 			sel.Tags = append(sel.Tags, Word{Text: "Gallery", Weight: 15, Link: options.link + "/show?" + strings.TrimPrefix(params, "&")})
 		}
 	*/
-	rows, err = db.sess.Query("select tag, count(distinct picture_name) cnt from ("+sql+") group by tag", tags...)
+	rows, err = db.sess.Query(`
+	select tag, cnt,
+	       case 
+		   when cnt between 1 and 10 then 1
+		   when cnt between 11 and 20 then 2
+		   when cnt between 21 and 50 then 3
+		   when cnt between 51 and 100 then 4
+		   when cnt between 101 and 200 then 5
+		   when cnt between 201 and 400 then 6
+		   when cnt between 401 and 800 then 7
+		   when cnt > 800 then 8
+		   end cnt_grp
+    from ( select tag, count(distinct picture_name) cnt from (`+sql+") group by tag ) order by cnt_grp desc, tag", tags...)
 	if err != nil {
 		log.Println(err)
 	}
@@ -180,12 +191,12 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	for rows.Next() {
 
 		var tag string
-		var cnt float64
-		err = rows.Scan(&tag, &cnt)
+		var cnt, cntGrp int
+		err = rows.Scan(&tag, &cnt, &cntGrp)
 		if err != nil {
 			log.Fatal(err)
 		}
-		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: int(math.Trunc(math.Log(cnt))), Link: options.link + "/drilldown?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
+		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Count: cnt, Link: options.link + "/drilldown?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
 	}
 	err = rows.Err()
 	if err != nil {

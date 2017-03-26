@@ -87,7 +87,7 @@ func (p *Picture) ParseMetadata(m Metadata) {
 		tags = append(tags, Tag{meta: "Lens", tag: m.Lens})
 	}
 
-	tags = append(tags, Tag{meta: "Rating", tag: strings.Repeat("*", m.Rating) + " Star"})
+	tags = append(tags, Tag{meta: "Rating", tag: strings.Repeat("*", m.Rating) + ""})
 	switch m.Keywords.(type) {
 	case []string:
 		for _, k := range m.Keywords.([]string) {

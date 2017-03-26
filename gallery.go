@@ -11,12 +11,14 @@ import (
 type Options struct {
 	monthName       map[string]string
 	link            string
-	cloudTags       []string
+	Source          string
+	CloudTags       []string
 	descriptionTags []string
 }
 type Word struct {
 	Text   string `json:"text"`
-	Weight int    `json:"weight"`
+	Count  int    `json:"weight"`
+	Weight int    `json:"weightgrp"`
 	Link   string `json:"link"`
 }
 type Image struct {
@@ -37,7 +39,8 @@ var options Options
 func main() {
 	options.monthName = map[string]string{"01": "Leden", "02": "Únor", "03": "Březen", "04": "Duben", "05": "Květen", "06": "Červen", "07": "Červenec", "08": "Srpen", "09": "Září", "10": "Říjen", "11": "Listopad", "12": "Prosinec"}
 	options.link = "/gallery"
-	options.cloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
+	options.Source = "/Users/rdvorak/Pictures"
+	options.CloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	options.descriptionTags = []string{"Rating", "Model", "Lens", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	db := pictureDb()
 	defer db.sess.Close()
@@ -50,10 +53,10 @@ func main() {
 	// admin := router.Group("/admin/", gin.BasicAuth(gin.Accounts{
 	// "pozdechov": "vp2",
 	// }))
-	router.StaticFS("/jqcloud", http.Dir("jqcloud"))
+	// router.StaticFS("/jqcloud", http.Dir("jqcloud"))
 	router.StaticFS("/jquery", http.Dir("jquery"))
 	router.StaticFS("/folio", http.Dir("folio"))
-	router.StaticFS("/pics", http.Dir("/Users/rdvorak/Pictures"))
+	router.StaticFS("/pics", http.Dir(options.Source))
 
 	// router.StaticFS("/Bacovi-rodokmen", http.Dir("www/Bacovi-rodokmen"))
 	// router.LoadHTMLFiles("www/vp2.html")

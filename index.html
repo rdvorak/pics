@@ -2,39 +2,50 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-    <title>jQCloud</title>
-    <link rel="stylesheet" href="/jqcloud/jqcloud.css">
-
+    <title>Gallery</title>
     <script src="/jquery/jquery-2.2.4.min.js"></script>
-    
-    <script src="/jqcloud/jqcloud.js"></script>
     <script src="/folio/galleria/galleria-1.4.7.min.js"></script>
     <style>
       body {
-        /*background-color: black*/
+        background-color: black
       }
-      #cloud {
-        float:left;
-        width: 25%;
-        /*height: 1300px;*/
-        /*padding: 15px;*/
+      a {
+    float: left;
       }
       .galleria{ 
-        float:left;
+    float: left;
         width: 75%;
-        height: 1300px;
+        height: 3300px;
        }
-       .w1{ color: green; font-size: 1em; padding: 5px }
-       .w3{ color: green; font-size: 3em; }
-       .w4{ color: green; font-size: 4em; }
-       .w5{ color: green; font-size: 5em; }
+      .words {
+    float: left;
+        width: 25%;
+        height: 3300px;
+        /*height: auto;*/
+        /*padding: 15px;*/
+      }
+  .w1{ color: green; font-size: 0.8em; padding: 5px }
+       .w2{ color: green; font-size: 1.1em; padding: 5px }
+       .w3{ color: green; font-size: 1.4em; padding: 5px }
+       .w4{ color: green; font-size: 1.6em; padding: 5px }
+       .w5{ color: green; font-size: 1.8em; padding: 5px }
+       .w6{ color: green; font-size: 2.0em; padding: 5px }
+       .w7{ color: green; font-size: 2.2em; padding: 5px }
+       .w8{ color: green; font-size: 2.4em; padding: 5px }
+      a:link {
+      text-decoration: none;
+      }
+a:hover {
+    text-decoration: underline;
+}
     </style>
 
 	</head>
 	<body>
+    
     <div class="galleria"></div>
-    <div id="cloud">
-      {{range .Tags}}<a class="w1" href= {{ .Link}}>{{ .Text}}</a>{{end}}
+    <div class="words">
+      {{range .Tags}}<a class="w{{ .Weight}}" href= {{ .Link}}>{{ .Text}}</a>{{end}}
     </div>
 	</body>
     <script>
@@ -47,6 +58,6 @@
         // autoResize: true
         // });
       var images = {{.Images}}
-      // $(window).on('load', function() { Galleria.loadTheme('/folio/galleria/themes/folio/galleria.folio.min.js'); Galleria.run('.galleria', { dataSource: images }); });
+      $(window).on('load', function() { Galleria.loadTheme('/folio/galleria/themes/folio/galleria.folio.min.js'); Galleria.run('.galleria', { dataSource: images,thumbnails: "numbers" }); });
      </script>
 </html>
