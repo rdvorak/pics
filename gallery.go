@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"gopkg.in/gin-gonic/gin.v1"
 )
@@ -76,6 +78,21 @@ func main() {
 		for _, meta := range data {
 			p := Picture{}
 			p.ParseMetadata(meta)
+			if meta.GPSLatitude != "" && meta.GPSLongitude != "" {
+				savedLocation := db.getLocation(meta.GPSLatitude, meta.GPSLongitude)
+				var location *OsmAddress
+				if savedLocation == "" {
+					location = OsmLocation(meta.GPSLatitude, meta.GPSLongitude)
+					time.Sleep(time.Millisecond * 500)
+				} else {
+					err = json.Unmarshal([]byte(savedLocation), location)
+					if err != nil {
+						fmt.Printf("OSM address: unmarshall error: %v\n %v\n", err, savedLocation)
+					}
+				}
+				p.ParseLocation(location)
+
+			}
 			db.savePicture(p)
 		}
 	})
@@ -93,19 +110,16 @@ func main() {
 	})
 	router.LoadHTMLFiles("index.html")
 	router.GET("/gallery", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", db.drillByTags())
+		c.HTML(http.StatusOK, "index.html", db.drillByTags(""))
 	})
-	router.GET("/gallery/drilldown", func(c *gin.Context) {
+	router.GET("/gallery/query", func(c *gin.Context) {
 		var tags []interface{}
-		fmt.Println(c.QueryArray("tag"))
 		for _, v := range c.QueryArray("tag") {
-			fmt.Println(v)
+			// fmt.Println(v)
 			tags = append(tags, v)
 		}
 		c.HTML(http.StatusOK, "index.html", db.drillByTags(tags...))
 
-		// b, _ := json.Marshal(db.drillByTags(tags...).tags)
-		// c.String(200, "%s", b)
 	})
 	router.Run(":8081")
 }

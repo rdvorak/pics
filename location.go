@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type mapyczRgeocode struct {
@@ -72,7 +73,8 @@ func mapyczLocation(lat, lon string) map[string]string {
 	return loc
 
 }
-func OsmLocation(lat, lon string) OsmAddress {
+func OsmLocation(lat, lon string) *OsmAddress {
+
 	resp, err := http.Get("http://nominatim.openstreetmap.org/reverse?format=json&namedetails=1&zoom=18&" + "lat=" + lat + "&lon=" + lon)
 	if err != nil {
 		fmt.Printf("error: %v", err)
@@ -89,6 +91,7 @@ func OsmLocation(lat, lon string) OsmAddress {
 	if err != nil {
 		fmt.Printf("OSM address: unmarshall error: %v\n %v\n", err, body)
 	}
-	return address
+	time.Sleep(time.Millisecond * 500)
+	return &address
 
 }

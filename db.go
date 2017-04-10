@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"strings"
 
 	"database/sql"
@@ -27,6 +29,12 @@ create table if not exists Pictures (
 	FILENAME text,
 	METADATA	text,
 	NUM_METADATA  text,
+	GPS_Longitude text,
+	GPS_Latitude text
+);
+create table if not exists Locations (
+	Longitude text,
+	Latitude text,
 	LOCATION text
 );
 create table if not exists Picture_Tags (
@@ -35,6 +43,7 @@ create table if not exists Picture_Tags (
 );
 create unique index if not exists picture_tags_x1 on picture_tags (picture_name, tag);
 create unique index if not exists picture_tags_x2 on picture_tags (tag, picture_name);
+create unique index if not exists locations_x1 on locations (GPS_Longitude, gps_latitude);
 `
 
 	_, err = db.Exec(sqlStmt)
@@ -45,9 +54,9 @@ create unique index if not exists picture_tags_x2 on picture_tags (tag, picture_
 }
 func (db *PictureDb) savePicture(p Picture) {
 	if p.Metadata != nil {
-		stmt := `insert or replace into Pictures ( NAME, FILENAME, METADATA ) values( ?, ?, ?)`
+		stmt := `insert or replace into Pictures ( NAME, FILENAME, METADATA, gps_longitude, gps_latitude ) values( ?, ?, ?, ?, ?)`
 		meta, _ := json.Marshal(p.Metadata)
-		_, err := db.sess.Exec(stmt, p.Name, p.Metadata.FileName, meta)
+		_, err := db.sess.Exec(stmt, p.Name, p.Metadata.FileName, meta, p.Metadata.GPSLongitude, p.Metadata.GPSLatitude)
 		if err != nil {
 			log.Panicln(err)
 		}
@@ -69,8 +78,10 @@ func (db *PictureDb) savePicture(p Picture) {
 	}
 
 	if p.Location != nil {
+		stmt := `insert or replace into Locations( longitude, latitude, location ) values( ?, ?, ?  )`
+
 		loc, _ := json.Marshal(p.Location)
-		_, err := db.sess.Exec(`update pictures set location = ? where name = ?`, loc, p.Name)
+		_, err := db.sess.Exec(stmt, p.Metadata.GPSLongitude, p.Metadata.GPSLatitude, loc)
 		if err != nil {
 			log.Panicln(err)
 		}
@@ -91,6 +102,20 @@ func (db *PictureDb) savePicture(p Picture) {
 		}
 	}
 }
+func (db *PictureDb) getLocation(lat, lon string) string {
+	stmt, err := db.sess.Prepare("select location from locations where gps_longitude = ? and gps_latitude = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	var location string
+	err = stmt.QueryRow(lon, lat).Scan(&location)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return location
+}
+
 func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	var sel Gallery
 	var sql string
@@ -130,6 +155,14 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		//pro preview:  2015/02/thum/_DSC1212.jpg
 		webname := strings.Replace(name, filename, "web/"+filename, 1)
 		thumname := strings.Replace(name, filename, "thum/"+filename, 1)
+		if _, err := os.Stat(options.Source + "/" + webname); os.IsNotExist(err) {
+			fmt.Printf("file %s does not exist", options.Source+"/"+webname)
+			continue
+		}
+		if _, err := os.Stat(options.Source + "/" + thumname); os.IsNotExist(err) {
+			fmt.Printf("file %s does not exist", options.Source+"/"+thumname)
+			continue
+		}
 		// description
 		for _, meta := range options.descriptionTags {
 			rows2, err := db.sess.Query("select tag from picture_tags where  picture_name = ? and meta = ? ", name, meta)
@@ -196,7 +229,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		if err != nil {
 			log.Fatal(err)
 		}
-		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Count: cnt, Link: options.link + "/drilldown?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
+		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Count: cnt, Link: options.link + "/drill?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
 	}
 	err = rows.Err()
 	if err != nil {

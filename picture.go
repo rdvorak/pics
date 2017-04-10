@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 )
 
 type Metadata struct {
@@ -62,6 +61,10 @@ type Picture struct {
 }
 
 func (p *Picture) ParseMetadata(m Metadata) {
+	if m.GPSLatitude != "" && m.GPSLongitude != "" {
+		m.GPSLatitude = strings.TrimPrefix(m.GPSLatitude, "+")
+		m.GPSLongitude = strings.TrimPrefix(m.GPSLongitude, "+")
+	}
 	t := strings.Split(strings.Split(m.DateTimeOriginal, " ")[0], ":")
 	if len(t) > 1 {
 
@@ -103,33 +106,33 @@ func (p *Picture) ParseMetadata(m Metadata) {
 	for i := range tags {
 		tags[i].source = 1
 	}
-	if m.GPSLatitude != "" && m.GPSLongitude != "" {
-		m.GPSLatitude = strings.TrimPrefix(m.GPSLatitude, "+")
-		m.GPSLongitude = strings.TrimPrefix(m.GPSLongitude, "+")
-		addr := OsmLocation(m.GPSLatitude, m.GPSLongitude)
-
-		if addr.Address.Suburb != "" {
-			tags = append(tags, Tag{meta: "Sublocation", tag: addr.Address.City + addr.Address.Village, source: 3})
-		}
-		if addr.Address.City != "" || addr.Address.Village != "" {
-			tags = append(tags, Tag{meta: "Location", tag: addr.Address.City + addr.Address.Village, source: 3})
-		}
-		if addr.Address.State != "" {
-			tags = append(tags, Tag{meta: "State", tag: addr.Address.State, source: 3})
-		}
-		if addr.NameDetails.Name != "" {
-			tags = append(tags, Tag{meta: "Geoname", tag: addr.NameDetails.Name, source: 3})
-		}
-		if addr.Address.Country != "" {
-			tags = append(tags, Tag{meta: "Country", tag: addr.Address.Country, source: 3})
-		}
-		time.Sleep(time.Millisecond * 500)
-		p.Location = &addr
-	}
 	p.Tags = tags
 	p.Metadata = &m
 	fmt.Printf("%#v\n", p)
 }
+
+func (p *Picture) ParseLocation(addr *OsmAddress) {
+
+	var tags []Tag
+	if addr.Address.Suburb != "" {
+		tags = append(tags, Tag{meta: "Sublocation", tag: addr.Address.City + addr.Address.Village, source: 3})
+	}
+	if addr.Address.City != "" || addr.Address.Village != "" {
+		tags = append(tags, Tag{meta: "Location", tag: addr.Address.City + addr.Address.Village, source: 3})
+	}
+	if addr.Address.State != "" {
+		tags = append(tags, Tag{meta: "State", tag: addr.Address.State, source: 3})
+	}
+	if addr.NameDetails.Name != "" {
+		tags = append(tags, Tag{meta: "Geoname", tag: addr.NameDetails.Name, source: 3})
+	}
+	if addr.Address.Country != "" {
+		tags = append(tags, Tag{meta: "Country", tag: addr.Address.Country, source: 3})
+	}
+	p.Location = addr
+	p.Tags = append(p.Tags, tags...)
+}
+
 func (p *Picture) ParseNumMetadata(m NumMetadata) {
 	if p.Name == "" {
 		t := strings.Split(strings.Split(m.DateTimeOriginal, " ")[0], ":")
