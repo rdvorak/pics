@@ -1,4 +1,5 @@
 for YEAR
 do
-exiftool -J -my $( find $HOME/Pictures/$YEAR -type d -name "web") | curl -POST --data-binary @- http://localhost:8081/submit/metadata
+	find $HOME/Pictures/$YEAR -type f -name "*.js" | while read f; do curl -POST --data-binary @"$f" http://localhost:8081/gallery/submit/metadata;
+done;
 done

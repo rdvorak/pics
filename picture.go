@@ -3,29 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 )
 
 type Metadata struct {
-	FileName             string
-	Model                string
-	DateTimeOriginal     string
-	ISO                  int
-	ShutterSpeed         string
-	Aperture             float64
-	ExposureCompensation float64
-	FocalLength          string
-	WhiteBalance         string
-	ImageSize            string
-	Orientation          string
-	LensInfo             string
-	LensID               string
-	Lens                 string
-	GPSAltitude          string
-	GPSLatitude          string
-	GPSLongitude         string
-	Rating               int
-	Keywords             interface{}
+	FileName         string
+	Model            string
+	DateTimeOriginal string
+	ISO              int
+	// ShutterSpeed         float64
+	Aperture float64
+	// ExposureCompensation float64
+	FocalLength  string
+	WhiteBalance string
+	ImageSize    string
+	Orientation  string
+	LensInfo     string
+	LensID       string
+	Lens         string
+	GPSAltitude  string
+	GPSLatitude  string
+	GPSLongitude string
+	Rating       int
+	Keywords     interface{}
 }
 type NumMetadata struct {
 	FileName             string
@@ -60,7 +61,7 @@ type Picture struct {
 	Tags     []Tag
 }
 
-func (p *Picture) ParseMetadata(m Metadata) {
+func (p *Picture) ParseMetadata(m *Metadata) {
 	if m.GPSLatitude != "" && m.GPSLongitude != "" {
 		m.GPSLatitude = strings.TrimPrefix(m.GPSLatitude, "+")
 		m.GPSLongitude = strings.TrimPrefix(m.GPSLongitude, "+")
@@ -72,10 +73,25 @@ func (p *Picture) ParseMetadata(m Metadata) {
 		p.Month = t[1]
 		p.Name = t[0] + "/" + t[1] + "/" + m.FileName
 	} else {
-		log.Println("picture metadata: DateTimeOriginal: ", m.DateTimeOriginal, " cannot be parsed")
+		log.Println(m.FileName, " DateTimeOriginal: ", m.DateTimeOriginal, " cannot be parsed")
 		return
 	}
 	var tags []Tag
+	if m.Rating > 0 {
+		tags = append(tags, Tag{meta: "Rating", tag: strings.Repeat("*", m.Rating) + ""})
+		//predpokladame umisteni
+		//pro fotky:  2015/02/web/_DSC1212.jpg
+		//pro preview:  2015/02/thum/_DSC1212.jpg
+		webname := strings.Replace(p.Name, m.FileName, "web/"+m.FileName, 1)
+		thumname := strings.Replace(p.Name, m.FileName, "thum/"+m.FileName, 1)
+		if _, err := os.Stat(options.Source + "/" + webname); os.IsNotExist(err) {
+			fmt.Printf("! file %s does not exist\n", options.Source+"/"+webname)
+		}
+		if _, err := os.Stat(options.Source + "/" + thumname); os.IsNotExist(err) {
+			fmt.Printf("! file %s does not exist\n", options.Source+"/"+thumname)
+		}
+	}
+
 	tags = append(tags, Tag{meta: "Model", tag: m.Model})
 	tags = append(tags, Tag{meta: "FocalLength", tag: m.FocalLength})
 	// tags = append(tags, Tag{meta: "ShutterSpeed", tag: m.ShutterSpeed})
@@ -90,7 +106,6 @@ func (p *Picture) ParseMetadata(m Metadata) {
 		tags = append(tags, Tag{meta: "Lens", tag: m.Lens})
 	}
 
-	tags = append(tags, Tag{meta: "Rating", tag: strings.Repeat("*", m.Rating) + ""})
 	switch m.Keywords.(type) {
 	case []string:
 		for _, k := range m.Keywords.([]string) {
@@ -107,30 +122,31 @@ func (p *Picture) ParseMetadata(m Metadata) {
 		tags[i].source = 1
 	}
 	p.Tags = tags
-	p.Metadata = &m
-	fmt.Printf("%#v\n", p)
+	p.Metadata = m
+	fmt.Printf("Parsed: %v\n", p.Name)
 }
 
 func (p *Picture) ParseLocation(addr *OsmAddress) {
-
-	var tags []Tag
-	if addr.Address.Suburb != "" {
-		tags = append(tags, Tag{meta: "Sublocation", tag: addr.Address.City + addr.Address.Village, source: 3})
+	if addr != nil {
+		var tags []Tag
+		if addr.Address.Suburb != "" {
+			tags = append(tags, Tag{meta: "Sublocation", tag: addr.Address.City + addr.Address.Village, source: 3})
+		}
+		if addr.Address.City != "" || addr.Address.Village != "" {
+			tags = append(tags, Tag{meta: "Location", tag: addr.Address.City + addr.Address.Village, source: 3})
+		}
+		if addr.Address.State != "" {
+			tags = append(tags, Tag{meta: "State", tag: addr.Address.State, source: 3})
+		}
+		if addr.NameDetails.Name != "" {
+			tags = append(tags, Tag{meta: "Geoname", tag: addr.NameDetails.Name, source: 3})
+		}
+		if addr.Address.Country != "" {
+			tags = append(tags, Tag{meta: "Country", tag: addr.Address.Country, source: 3})
+		}
+		p.Location = addr
+		p.Tags = append(p.Tags, tags...)
 	}
-	if addr.Address.City != "" || addr.Address.Village != "" {
-		tags = append(tags, Tag{meta: "Location", tag: addr.Address.City + addr.Address.Village, source: 3})
-	}
-	if addr.Address.State != "" {
-		tags = append(tags, Tag{meta: "State", tag: addr.Address.State, source: 3})
-	}
-	if addr.NameDetails.Name != "" {
-		tags = append(tags, Tag{meta: "Geoname", tag: addr.NameDetails.Name, source: 3})
-	}
-	if addr.Address.Country != "" {
-		tags = append(tags, Tag{meta: "Country", tag: addr.Address.Country, source: 3})
-	}
-	p.Location = addr
-	p.Tags = append(p.Tags, tags...)
 }
 
 func (p *Picture) ParseNumMetadata(m NumMetadata) {

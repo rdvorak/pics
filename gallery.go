@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -42,7 +43,8 @@ func main() {
 	options.monthName = map[string]string{"01": "Leden", "02": "Únor", "03": "Březen", "04": "Duben", "05": "Květen", "06": "Červen", "07": "Červenec", "08": "Srpen", "09": "Září", "10": "Říjen", "11": "Listopad", "12": "Prosinec"}
 	options.link = "/gallery"
 	options.Source = "/Users/rdvorak/Pictures"
-	options.CloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
+	options.CloudTags = []string{"Rating", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
+	// options.CloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	options.descriptionTags = []string{"Rating", "Model", "Lens", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	db := pictureDb()
 	defer db.sess.Close()
@@ -56,8 +58,8 @@ func main() {
 	// "pozdechov": "vp2",
 	// }))
 	// router.StaticFS("/jqcloud", http.Dir("jqcloud"))
-	router.StaticFS("/jquery", http.Dir("jquery"))
-	router.StaticFS("/folio", http.Dir("folio"))
+	router.StaticFS("/gallery/jquery", http.Dir("jquery"))
+	router.StaticFS("/gallery/folio", http.Dir("folio"))
 	router.StaticFS("/pics", http.Dir(options.Source))
 
 	// router.StaticFS("/Bacovi-rodokmen", http.Dir("www/Bacovi-rodokmen"))
@@ -69,7 +71,7 @@ func main() {
 	// router.GET("/archive/day", func(c *gin.Context) {
 	// c.JSON(http.StatusOK, vp.archiveDay)
 	// })
-	router.POST("/submit/metadata", func(c *gin.Context) {
+	router.POST("/gallery/submit/metadata", func(c *gin.Context) {
 		var data []Metadata
 		err := c.BindJSON(&data)
 		if err != nil {
@@ -77,17 +79,18 @@ func main() {
 		}
 		for _, meta := range data {
 			p := Picture{}
-			p.ParseMetadata(meta)
+			p.ParseMetadata(&meta)
 			if meta.GPSLatitude != "" && meta.GPSLongitude != "" {
 				savedLocation := db.getLocation(meta.GPSLatitude, meta.GPSLongitude)
 				var location *OsmAddress
 				if savedLocation == "" {
+					fmt.Printf("getting OSM adress: %s lat=%s,lon=%s \n", p.Name, meta.GPSLatitude, meta.GPSLongitude)
 					location = OsmLocation(meta.GPSLatitude, meta.GPSLongitude)
 					time.Sleep(time.Millisecond * 500)
 				} else {
-					err = json.Unmarshal([]byte(savedLocation), location)
+					err = json.Unmarshal([]byte(savedLocation), &location)
 					if err != nil {
-						fmt.Printf("OSM address: unmarshall error: %v\n %v\n", err, savedLocation)
+						fmt.Printf("OSM address: unmarshall error: %v\n %s\n", err, savedLocation)
 					}
 				}
 				p.ParseLocation(location)
@@ -96,7 +99,7 @@ func main() {
 			db.savePicture(p)
 		}
 	})
-	router.POST("/submit/metadata/num", func(c *gin.Context) {
+	router.POST("/gallery/submit/metadata/num", func(c *gin.Context) {
 		var data []NumMetadata
 		err := c.BindJSON(&data)
 		if err != nil {
@@ -109,8 +112,23 @@ func main() {
 		}
 	})
 	router.LoadHTMLFiles("index.html")
+	gallery := db.drillByTags()
+	randImages := func(im []Image) []Image {
+		var sel []Image
+		// nahodne vybereme 100 obrazku
+		// fmt.Println("Images ", len(sel.Images))
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for i, val := range r.Perm(len(im)) {
+			sel = append(sel, im[val])
+			if i > 100 {
+				break
+			}
+		}
+		return sel
+	}
 	router.GET("/gallery", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", db.drillByTags(""))
+
+		c.HTML(http.StatusOK, "index.html", Gallery{Tags: gallery.Tags, Images: randImages(gallery.Images)})
 	})
 	router.GET("/gallery/query", func(c *gin.Context) {
 		var tags []interface{}
@@ -118,7 +136,9 @@ func main() {
 			// fmt.Println(v)
 			tags = append(tags, v)
 		}
-		c.HTML(http.StatusOK, "index.html", db.drillByTags(tags...))
+
+		sel := db.drillByTags(tags...)
+		c.HTML(http.StatusOK, "index.html", Gallery{Tags: sel.Tags, Images: randImages(sel.Images)})
 
 	})
 	router.Run(":8081")

@@ -2,10 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
-	"math/rand"
-	"os"
 	"strings"
 
 	"database/sql"
@@ -33,8 +30,8 @@ create table if not exists Pictures (
 	GPS_Latitude text
 );
 create table if not exists Locations (
-	Longitude text,
-	Latitude text,
+	gps_Longitude text,
+	gps_Latitude text,
 	LOCATION text
 );
 create table if not exists Picture_Tags (
@@ -78,7 +75,7 @@ func (db *PictureDb) savePicture(p Picture) {
 	}
 
 	if p.Location != nil {
-		stmt := `insert or replace into Locations( longitude, latitude, location ) values( ?, ?, ?  )`
+		stmt := `insert or replace into Locations( gps_longitude, gps_latitude, location ) values( ?, ?, ?  )`
 
 		loc, _ := json.Marshal(p.Location)
 		_, err := db.sess.Exec(stmt, p.Metadata.GPSLongitude, p.Metadata.GPSLatitude, loc)
@@ -110,9 +107,6 @@ func (db *PictureDb) getLocation(lat, lon string) string {
 	defer stmt.Close()
 	var location string
 	err = stmt.QueryRow(lon, lat).Scan(&location)
-	if err != nil {
-		log.Fatal(err)
-	}
 	return location
 }
 
@@ -126,14 +120,14 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	}
 	for i, tag := range tags {
 		if i == 0 {
-			sql = "select picture_name from picture_tags where tag = ?  " + CloudTags
+			sql = "select picture_name from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '*%') and tag = ?  " + CloudTags
 		} else if i < len(tags) {
 			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ? " + CloudTags
 		}
 		params = params + "&tag=" + tag.(string)
 	}
 	if sql == "" {
-		sql = "select picture_name, tag from picture_tags where 1=1 " + CloudTags
+		sql = "select picture_name, tag from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '*%') " + CloudTags
 	} else {
 		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ") " + CloudTags
 	}
@@ -150,19 +144,8 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		if err != nil {
 			log.Println(err)
 		}
-		//predpokladame umisteni
-		//pro fotky:  2015/02/web/_DSC1212.jpg
-		//pro preview:  2015/02/thum/_DSC1212.jpg
 		webname := strings.Replace(name, filename, "web/"+filename, 1)
 		thumname := strings.Replace(name, filename, "thum/"+filename, 1)
-		if _, err := os.Stat(options.Source + "/" + webname); os.IsNotExist(err) {
-			fmt.Printf("file %s does not exist", options.Source+"/"+webname)
-			continue
-		}
-		if _, err := os.Stat(options.Source + "/" + thumname); os.IsNotExist(err) {
-			fmt.Printf("file %s does not exist", options.Source+"/"+thumname)
-			continue
-		}
 		// description
 		for _, meta := range options.descriptionTags {
 			rows2, err := db.sess.Query("select tag from picture_tags where  picture_name = ? and meta = ? ", name, meta)
@@ -184,26 +167,6 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	if err != nil {
 		log.Println(err)
 	}
-	var sel2 []Image
-	// nahodne vybereme 100 obrazku
-	// fmt.Println("Images ", len(sel.Images))
-	for i, val := range rand.Perm(len(sel.Images)) {
-		sel2 = append(sel2, sel.Images[val])
-		if i > 100 {
-			break
-		}
-	}
-	// fmt.Println("Sel ", len(sel2))
-	sel.Images = sel2
-	err = rows.Err()
-	if err != nil {
-		log.Fatal(err)
-	}
-	/*
-		if len(sel.Images) <= 100 {
-			sel.Tags = append(sel.Tags, Word{Text: "Gallery", Weight: 15, Link: options.link + "/show?" + strings.TrimPrefix(params, "&")})
-		}
-	*/
 	rows, err = db.sess.Query(`
 	select tag, cnt,
 	       case 
@@ -216,7 +179,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		   when cnt between 401 and 800 then 7
 		   when cnt > 800 then 8
 		   end cnt_grp
-    from ( select tag, count(distinct picture_name) cnt from (`+sql+") group by tag ) order by cnt_grp desc, tag", tags...)
+    from ( select tag, count(distinct picture_name) cnt from (`+sql+") group by tag ) order by cnt_grp desc, tag COLLATE NOCASE", tags...)
 	if err != nil {
 		log.Println(err)
 	}
@@ -227,13 +190,13 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		var cnt, cntGrp int
 		err = rows.Scan(&tag, &cnt, &cntGrp)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
-		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Count: cnt, Link: options.link + "/drill?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
+		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Count: cnt, Link: options.link + "/query?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	return sel

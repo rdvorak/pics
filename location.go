@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 type mapyczRgeocode struct {
@@ -89,9 +88,8 @@ func OsmLocation(lat, lon string) *OsmAddress {
 
 	err = json.Unmarshal(body, &address)
 	if err != nil {
-		fmt.Printf("OSM address: unmarshall error: %v\n %v\n", err, body)
+		fmt.Printf("OSM address: unmarshall error: %v\n %s\n", err, body)
 	}
-	time.Sleep(time.Millisecond * 500)
 	return &address
 
 }

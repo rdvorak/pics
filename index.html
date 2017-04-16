@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="UTF-8">
     <title>Gallery</title>
-    <script src="/jquery/jquery-2.2.4.min.js"></script>
-    <script src="/folio/galleria/galleria-1.4.7.min.js"></script>
+    <script src="/gallery/jquery/jquery-2.2.4.min.js"></script>
+    <script src="/gallery/folio/galleria/galleria-1.4.7.min.js"></script>
     <style>
       body {
         background-color: black
@@ -15,12 +15,12 @@
       .galleria{ 
     float: left;
         width: 75%;
-        height: 3300px;
+        height: 4300px;
        }
       .words {
     float: left;
         width: 25%;
-        height: 3300px;
+        height: 4300px;
         /*height: auto;*/
         /*padding: 15px;*/
       }
@@ -49,15 +49,7 @@ a:hover {
     </div>
 	</body>
     <script>
-      
-      var words = {{.Tags}}
-      // $('#cloud').jQCloud(words, {
-        //  steps: 8,
-        //  removeOverflowing: false,
-        // shape: 'rectangular',
-        // autoResize: true
-        // });
-      var images = {{.Images}}
-      $(window).on('load', function() { Galleria.loadTheme('/folio/galleria/themes/folio/galleria.folio.min.js'); Galleria.run('.galleria', { dataSource: images,thumbnails: "numbers" }); });
+     var images = {{.Images}}
+      $(window).on('load', function() { Galleria.loadTheme('/gallery/folio/galleria/themes/folio/galleria.folio.min.js'); Galleria.run('.galleria', { dataSource: images }); });
      </script>
 </html>
