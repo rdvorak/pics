@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type mapyczRgeocode struct {
@@ -35,6 +36,12 @@ type OsmAddress struct {
 }
 
 func mapyczLocation(lat, lon string) map[string]string {
+	if strings.HasSuffix(lon, " W") {
+		lat = "-" + strings.TrimSuffix(lon, " W")
+	}
+	if strings.HasSuffix(lat, " S") {
+		lat = "-" + strings.TrimSuffix(lat, " S")
+	}
 	resp, err := http.Get("https://api.mapy.cz/rgeocode?" + "lat=" + lat + "&lon=" + lon)
 	if err != nil {
 		fmt.Printf("error: %v", err)

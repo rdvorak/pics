@@ -11,13 +11,6 @@ import (
 	"gopkg.in/gin-gonic/gin.v1"
 )
 
-type Options struct {
-	monthName       map[string]string
-	link            string
-	Source          string
-	CloudTags       []string
-	descriptionTags []string
-}
 type Word struct {
 	Text   string `json:"text"`
 	Count  int    `json:"weight"`
@@ -37,40 +30,15 @@ type Gallery struct {
 	Images []Image
 }
 
-var options Options
-
 func main() {
-	options.monthName = map[string]string{"01": "Leden", "02": "Únor", "03": "Březen", "04": "Duben", "05": "Květen", "06": "Červen", "07": "Červenec", "08": "Srpen", "09": "Září", "10": "Říjen", "11": "Listopad", "12": "Prosinec"}
-	options.link = "/gallery"
-	options.Source = "/Users/rdvorak/Pictures"
-	options.CloudTags = []string{"Rating", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
-	// options.CloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
-	options.descriptionTags = []string{"Rating", "Model", "Lens", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	db := pictureDb()
 	defer db.sess.Close()
-	// allGallery := db.drillByTags()
-	// fmt.Printf("%v\n", allGallery)
-	// Group using gin.BasicAuth() middleware
-	// gin.Accounts is a shortcut for map[string]string
 	gin.SetMode("debug")
 	router := gin.Default()
-	// admin := router.Group("/admin/", gin.BasicAuth(gin.Accounts{
-	// "pozdechov": "vp2",
-	// }))
-	// router.StaticFS("/jqcloud", http.Dir("jqcloud"))
 	router.StaticFS("/gallery/jquery", http.Dir("jquery"))
 	router.StaticFS("/gallery/folio", http.Dir("folio"))
 	router.StaticFS("/pics", http.Dir(options.Source))
 
-	// router.StaticFS("/Bacovi-rodokmen", http.Dir("www/Bacovi-rodokmen"))
-	// router.LoadHTMLFiles("www/vp2.html")
-	// router.GET("/", func(c *gin.Context) {
-	// c.HTML(http.StatusOK, "vp2.html", nil)
-	// })
-
-	// router.GET("/archive/day", func(c *gin.Context) {
-	// c.JSON(http.StatusOK, vp.archiveDay)
-	// })
 	router.POST("/gallery/submit/metadata", func(c *gin.Context) {
 		var data []Metadata
 		err := c.BindJSON(&data)

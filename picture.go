@@ -105,18 +105,23 @@ func (p *Picture) ParseMetadata(m *Metadata) {
 	} else {
 		tags = append(tags, Tag{meta: "Lens", tag: m.Lens})
 	}
-
+	trans := func(text string) string {
+		for k, v := range options.Translations {
+			text = strings.Replace(text, k, v, -1)
+		}
+		return text
+	}
 	switch m.Keywords.(type) {
 	case []string:
 		for _, k := range m.Keywords.([]string) {
-			tags = append(tags, Tag{meta: "Keyword", tag: k})
+			tags = append(tags, Tag{meta: "Keyword", tag: trans(k)})
 		}
 	case string:
 
-		tags = append(tags, Tag{meta: "Keyword", tag: m.Keywords.(string)})
+		tags = append(tags, Tag{meta: "Keyword", tag: trans(m.Keywords.(string))})
 	}
 	tags = append(tags, Tag{meta: "Year", tag: p.Year})
-	tags = append(tags, Tag{meta: "Month", tag: options.monthName[p.Month]})
+	tags = append(tags, Tag{meta: "Month", tag: options.MonthName[p.Month]})
 
 	for i := range tags {
 		tags[i].source = 1

@@ -147,7 +147,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		webname := strings.Replace(name, filename, "web/"+filename, 1)
 		thumname := strings.Replace(name, filename, "thum/"+filename, 1)
 		// description
-		for _, meta := range options.descriptionTags {
+		for _, meta := range options.DescriptionTags {
 			rows2, err := db.sess.Query("select tag from picture_tags where  picture_name = ? and meta = ? ", name, meta)
 			if err != nil {
 				log.Println(err)

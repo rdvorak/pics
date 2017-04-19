@@ -8,30 +8,45 @@
     <style>
       body {
         background-color: black
+        
       }
+      #main {
+    width: 100%;
+    display: -webkit-flex; /* Safari */
+    -webkit-flex-flow: row wrap; /* Safari 6.1+ */
+    display: flex;
+    flex-flow: row wrap;
+}
+
+
       a {
     float: left;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    color: #8fbc8f;
+    padding: 5px;
       }
+
       .galleria{ 
-    float: left;
-        width: 75%;
+        float: left;
+        width: 73%;
         height: 4300px;
        }
       .words {
     float: left;
-        width: 25%;
+        float: left;
+        width: 27%;
         height: 4300px;
         /*height: auto;*/
         /*padding: 15px;*/
       }
-  .w1{ color: green; font-size: 0.8em; padding: 5px }
-       .w2{ color: green; font-size: 1.1em; padding: 5px }
-       .w3{ color: green; font-size: 1.4em; padding: 5px }
-       .w4{ color: green; font-size: 1.6em; padding: 5px }
-       .w5{ color: green; font-size: 1.8em; padding: 5px }
-       .w6{ color: green; font-size: 2.0em; padding: 5px }
-       .w7{ color: green; font-size: 2.2em; padding: 5px }
-       .w8{ color: green; font-size: 2.4em; padding: 5px }
+       .w1{ font-size: 0.8em; }
+       .w2{ font-size: 1.0em; }
+       .w3{ font-size: 1.2em; }
+       .w4{ font-size: 1.4em; }
+       .w5{ font-size: 1.6em; }
+       .w6{ font-size: 1.8em; }
+       .w7{ font-size: 2.0em; }
+       .w8{ font-size: 2.2em; }
       a:link {
       text-decoration: none;
       }
@@ -42,11 +57,12 @@ a:hover {
 
 	</head>
 	<body>
-    
+   <div id="main"> 
     <div class="galleria"></div>
     <div class="words">
       {{range .Tags}}<a class="w{{ .Weight}}" href= {{ .Link}}>{{ .Text}}</a>{{end}}
     </div>
+   </div>
 	</body>
     <script>
      var images = {{.Images}}
