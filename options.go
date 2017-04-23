@@ -7,6 +7,8 @@ type Options struct {
 	CloudTags       []string
 	DescriptionTags []string
 	Translations    map[string]string
+	ShowAllLimit    int
+	ShowRandomLimit int
 }
 
 var options = Options{
@@ -30,4 +32,6 @@ var options = Options{
 		"Sulov":     "Súlov",
 		"Kutna":     "Kutná",
 		"Vsetin":    "Vsetín"},
+	ShowAllLimit:    200,
+	ShowRandomLimit: 100,
 }
