@@ -15,8 +15,8 @@ type Options struct {
 var options = Options{
 	MonthName: map[string]string{"01": "Leden", "02": "Únor", "03": "Březen", "04": "Duben", "05": "Květen", "06": "Červen", "07": "Červenec", "08": "Srpen", "09": "Září", "10": "Říjen", "11": "Listopad", "12": "Prosinec"},
 	link:      "/gallery",
-	Pics:      "/Users/rdvorak/Pictures/export/web",
-	Thums:     "/Users/rdvorak/Pictures/export/thum",
+	Pics:      "/home/rdvorak/Pictures",
+	Thums:     "/home/rdvorak/Pictures",
 	CloudTags: []string{"Rating", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"},
 	// options.CloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	DescriptionTags: []string{"Rating", "Model", "Lens", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"},
@@ -34,6 +34,6 @@ var options = Options{
 		"Sulov":     "Súlov",
 		"Kutna":     "Kutná",
 		"Vsetin":    "Vsetín"},
-	ShowAllLimit:    200,
+	ShowAllLimit:    150,
 	ShowRandomLimit: 100,
 }

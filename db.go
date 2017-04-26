@@ -133,19 +133,20 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	}
 
 	log.Println(sql)
-	rows, err := db.sess.Query("select name, filename from pictures where name in (select  picture_name from ("+sql+"))", tags...)
+	rows, err := db.sess.Query("select name, filename, replace(filename,'.JPG','.jpg') filename2 from pictures where name in (select  picture_name from ("+sql+"))", tags...)
 	if err != nil {
 		log.Println(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var name, filename, tag, desc string
-		err = rows.Scan(&name, &filename)
+		var name, filename, filename2, tag, desc string
+		err = rows.Scan(&name, &filename, &filename2)
 		if err != nil {
 			log.Println(err)
 		}
-		webname := strings.Replace(name, filename, "web/"+filename, 1)
-		thumname := strings.Replace(name, filename, "thum/"+filename, 1)
+		
+		webname := strings.Replace(name, filename, "web/"+filename2, 1)
+		thumname := strings.Replace(name, filename, "thum/"+filename2, 1)
 		// description
 		for _, meta := range options.DescriptionTags {
 			rows2, err := db.sess.Query("select tag from picture_tags where  picture_name = ? and meta = ? ", name, meta)
