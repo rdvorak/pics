@@ -80,7 +80,18 @@ func mapyczLocation(lat, lon string) map[string]string {
 
 }
 func OsmLocation(lat, lon string) *OsmAddress {
-
+	if strings.HasSuffix(lat, " N") {
+		lat = strings.TrimSuffix(lat, " N")
+	}
+	if strings.HasSuffix(lat, " S") {
+		lat = "-" + strings.TrimSuffix(lat, " S")
+	}
+	if strings.HasSuffix(lon, " E") {
+		lon = strings.TrimSuffix(lon, " E")
+	}
+	if strings.HasSuffix(lon, " W") {
+		lon = "-" + strings.TrimSuffix(lon, " W")
+	}
 	resp, err := http.Get("http://nominatim.openstreetmap.org/reverse?format=json&namedetails=1&zoom=18&" + "lat=" + lat + "&lon=" + lon)
 	if err != nil {
 		fmt.Printf("error: %v", err)

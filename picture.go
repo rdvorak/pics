@@ -84,11 +84,11 @@ func (p *Picture) ParseMetadata(m *Metadata) {
 		//pro preview:  2015/02/thum/_DSC1212.jpg
 		webname := strings.Replace(p.Name, m.FileName, "web/"+m.FileName, 1)
 		thumname := strings.Replace(p.Name, m.FileName, "thum/"+m.FileName, 1)
-		if _, err := os.Stat(options.Source + "/" + webname); os.IsNotExist(err) {
-			fmt.Printf("! file %s does not exist\n", options.Source+"/"+webname)
+		if _, err := os.Stat(options.Pics + "/" + webname); os.IsNotExist(err) {
+			fmt.Printf("! file %s does not exist\n", options.Pics+"/"+webname)
 		}
-		if _, err := os.Stat(options.Source + "/" + thumname); os.IsNotExist(err) {
-			fmt.Printf("! file %s does not exist\n", options.Source+"/"+thumname)
+		if _, err := os.Stat(options.Thums + "/" + thumname); os.IsNotExist(err) {
+			fmt.Printf("! file %s does not exist\n", options.Pics+"/"+thumname)
 		}
 	}
 

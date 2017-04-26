@@ -161,7 +161,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 				desc = desc + ", " + tag
 			}
 		}
-		sel.Images = append(sel.Images, Image{Image: "/pics/" + webname, Thumb: "/pics/" + thumname, Title: "", Description: strings.TrimPrefix(desc, ", ")})
+		sel.Images = append(sel.Images, Image{Image: "/pics/" + webname, Thumb: "/thums/" + thumname, Title: "", Description: strings.TrimPrefix(desc, ", ")})
 	}
 	err = rows.Err()
 	if err != nil {

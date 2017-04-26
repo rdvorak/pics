@@ -37,7 +37,8 @@ func main() {
 	router := gin.Default()
 	router.StaticFS("/gallery/jquery", http.Dir("jquery"))
 	router.StaticFS("/gallery/folio", http.Dir("folio"))
-	router.StaticFS("/pics", http.Dir(options.Source))
+	router.StaticFS("/pics", http.Dir(options.Pics))
+	router.StaticFS("/thums", http.Dir(options.Thums))
 
 	router.POST("/gallery/submit/metadata", func(c *gin.Context) {
 		var data []Metadata
