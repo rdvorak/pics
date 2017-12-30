@@ -17,7 +17,7 @@ var options = Options{
 	link:      "/gallery",
 	Pics:      "/home/rdvorak/Pictures",
 	Thums:     "/home/rdvorak/Pictures",
-	CloudTags: []string{"Rating", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"},
+	CloudTags: []string{"Rating", "Keyword", "Lens", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"},
 	// options.CloudTags = []string{"Rating", "FocalLength", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"}
 	DescriptionTags: []string{"Rating", "Model", "Lens", "Keyword", "Month", "Year", "State", "Country", "Location", "Sublocation", "Geoname"},
 	Translations: map[string]string{

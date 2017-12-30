@@ -97,12 +97,8 @@ func (p *Picture) ParseMetadata(m *Metadata) {
 	// tags = append(tags, Tag{meta: "ShutterSpeed", tag: m.ShutterSpeed})
 	// tags = append(tags, Tag{meta: "Aperture", tag: m.Aperture})
 
-	if m.Lens == "" {
-		if m.FocalLength == "35.0 mm" && strings.HasPrefix(m.Model, "NIKON") {
-
-			tags = append(tags, Tag{meta: "Lens", tag: "Zeiss Distagon 35mm f/2 T* ZF"})
-		}
-	} else {
+	if m.Lens != "" {
+	} 
 		tags = append(tags, Tag{meta: "Lens", tag: m.Lens})
 	}
 	trans := func(text string) string {
@@ -137,8 +133,8 @@ func (p *Picture) ParseLocation(addr *OsmAddress) {
 		if addr.Address.Suburb != "" {
 			tags = append(tags, Tag{meta: "Sublocation", tag: addr.Address.City + addr.Address.Village, source: 3})
 		}
-		if addr.Address.City != "" || addr.Address.Village != "" {
-			tags = append(tags, Tag{meta: "Location", tag: addr.Address.City + addr.Address.Village, source: 3})
+		if addr.Address.City != "" || addr.Address.Village != "" || addr.Address.Town != "" {
+			tags = append(tags, Tag{meta: "Location", tag: addr.Address.City + addr.Address.Town + addr.Address.Village, source: 3})
 		}
 		if addr.Address.State != "" {
 			tags = append(tags, Tag{meta: "State", tag: addr.Address.State, source: 3})

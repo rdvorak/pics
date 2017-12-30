@@ -25,6 +25,7 @@ type OsmAddress struct {
 		Suburb      string `json:"suburb"`
 		Village     string `json:"village"`
 		City        string `json:"city"`
+		Town        string `json:"town"`
 		County      string `json:"county"`
 		State       string `json:"state"`
 		Country     string `json:"country"`
