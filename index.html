@@ -25,6 +25,21 @@
     color: #8fbc8f;
     padding: 5px;
       }
+      .lens {
+        color:#1a441a
+      }
+      .rating {
+        color:#b0bb52
+      }
+      .year {
+        color:#3f853f
+      }
+      .month {
+        color:#3f853f
+      }
+      .geo {
+        color:#8fbc8f
+      }
 
       .galleria{ 
         float: left;
@@ -41,12 +56,12 @@
       }
        .w1{ font-size: 0.8em; }
        .w2{ font-size: 1.0em; }
-       .w3{ font-size: 1.2em; }
-       .w4{ font-size: 1.4em; }
-       .w5{ font-size: 1.6em; }
-       .w6{ font-size: 1.8em; }
-       .w7{ font-size: 2.0em; }
-       .w8{ font-size: 2.2em; }
+       .w3{ font-size: 1.0em; }
+       .w4{ font-size: 1.2em; }
+       .w5{ font-size: 1.4em; }
+       .w6{ font-size: 1.6em; }
+       .w7{ font-size: 1.8em; }
+       .w8{ font-size: 1.9em; }
       a:link {
       text-decoration: none;
       }
@@ -60,7 +75,7 @@ a:hover {
    <div id="main"> 
     <div class="galleria"></div>
     <div class="words">
-      {{range .Tags}}<a class="w{{ .Weight}}" href= {{ .Link}}>{{ .Text}}</a>{{end}}
+      {{range .Tags}}<a class="w{{ .Weight}} {{ .Color}}" href= {{ .Link}}>{{ .Text}}</a>{{end}}
     </div>
    </div>
 	</body>

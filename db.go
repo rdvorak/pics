@@ -120,16 +120,16 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	}
 	for i, tag := range tags {
 		if i == 0 {
-			sql = "select picture_name from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '%*%') and tag = ?  " + CloudTags
+			sql = "select picture_name, meta from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '%*%') and tag = ?  " + CloudTags
 		} else if i < len(tags) {
-			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ? " + CloudTags
+			sql = "select picture_name, meta from picture_tags where picture_name in (" + sql + ") and tag = ? " + CloudTags
 		}
 		params = params + "&tag=" + tag.(string)
 	}
 	if sql == "" {
-		sql = "select picture_name, tag from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '%*%') " + CloudTags
+		sql = "select picture_name, tag, meta from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '%*%') " + CloudTags
 	} else {
-		sql = "select picture_name, tag from picture_tags where picture_name in (" + sql + ") " + CloudTags
+		sql = "select picture_name, tag, meta from picture_tags where picture_name in (" + sql + ") " + CloudTags
 	}
 
 	log.Println(sql)
@@ -144,7 +144,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		if err != nil {
 			log.Println(err)
 		}
-		
+
 		webname := strings.Replace(name, filename, "web/"+filename2, 1)
 		thumname := strings.Replace(name, filename, "thum/"+filename2, 1)
 		// description
@@ -179,21 +179,25 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		   when cnt between 201 and 400 then 6
 		   when cnt between 401 and 800 then 7
 		   when cnt > 800 then 8
-		   end cnt_grp
-    from ( select tag, count(distinct picture_name) cnt from (`+sql+") group by tag ) order by cnt_grp desc, tag COLLATE NOCASE", tags...)
+		   end cnt_grp, 
+		   case
+		   when meta in ('Lens','Rating','Year','Month') then lower(meta)
+		   else 'geo'
+		   end color_style
+    from ( select tag, count(distinct picture_name) cnt, meta from (`+sql+") group by tag, meta ) order by cnt_grp desc, tag COLLATE NOCASE", tags...)
 	if err != nil {
 		log.Println(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 
-		var tag string
+		var tag, colorStyle string
 		var cnt, cntGrp int
-		err = rows.Scan(&tag, &cnt, &cntGrp)
+		err = rows.Scan(&tag, &cnt, &cntGrp, &colorStyle)
 		if err != nil {
 			log.Println(err)
 		}
-		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Count: cnt, Link: options.link + "/query?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
+		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Color: colorStyle, Count: cnt, Link: options.link + "/query?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
 	}
 	err = rows.Err()
 	if err != nil {

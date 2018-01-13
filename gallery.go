@@ -16,6 +16,7 @@ type Word struct {
 	Count  int    `json:"weight"`
 	Weight int    `json:"weightgrp"`
 	Link   string `json:"link"`
+	Color  string `json:"color"`
 }
 type Image struct {
 	Image       string `json:"image,omitempty"`
