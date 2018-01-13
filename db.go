@@ -120,9 +120,9 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	}
 	for i, tag := range tags {
 		if i == 0 {
-			sql = "select picture_name, meta from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '%*%') and tag = ?  " + CloudTags
+			sql = "select picture_name from picture_tags where picture_name in (select picture_name from picture_tags where meta = 'Rating' and tag like '%*%') and tag = ?  " + CloudTags
 		} else if i < len(tags) {
-			sql = "select picture_name, meta from picture_tags where picture_name in (" + sql + ") and tag = ? " + CloudTags
+			sql = "select picture_name from picture_tags where picture_name in (" + sql + ") and tag = ? " + CloudTags
 		}
 		params = params + "&tag=" + tag.(string)
 	}
