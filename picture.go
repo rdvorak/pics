@@ -78,7 +78,7 @@ func (p *Picture) ParseMetadata(m *Metadata) {
 	}
 	var tags []Tag
 	if m.Rating > 0 {
-		tags = append(tags, Tag{meta: "Rating", tag: strings.Repeat("*", m.Rating) + ""})
+		tags = append(tags, Tag{meta: "Rating", tag: "(" + strings.Repeat("*", m.Rating) + ")"})
 		//predpokladame umisteni
 		//pro fotky:  2015/02/web/_DSC1212.jpg
 		//pro preview:  2015/02/thum/_DSC1212.jpg
@@ -98,7 +98,6 @@ func (p *Picture) ParseMetadata(m *Metadata) {
 	// tags = append(tags, Tag{meta: "Aperture", tag: m.Aperture})
 
 	if m.Lens != "" {
-	} 
 		tags = append(tags, Tag{meta: "Lens", tag: m.Lens})
 	}
 	trans := func(text string) string {
