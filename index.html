@@ -12,15 +12,12 @@
       }
       #main {
     width: 100%;
-    display: -webkit-flex; /* Safari */
-    -webkit-flex-flow: row wrap; /* Safari 6.1+ */
-    display: flex;
-    flex-flow: row wrap;
 }
 
 
       a {
     float: left;
+overflow: hidden;
     font-family: "Trebuchet MS", Helvetica, sans-serif;
     color: #8fbc8f;
     padding: 5px;
@@ -47,10 +44,12 @@
         height: 4300px;
        }
       .words {
-    float: left;
+    display: -webkit-flex; /* Safari */
+    -webkit-flex-flow: wrap; /* Safari 6.1+ */
+    display: flex;
+    flex-flow: wrap;
         float: left;
         width: 27%;
-        height: 4300px;
         /*height: auto;*/
         /*padding: 15px;*/
       }
