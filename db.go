@@ -169,7 +169,7 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 		log.Println(err)
 	}
 	rows, err = db.sess.Query(`
-	select tag, cnt,
+	select tag, replace(replace(tag,'Makro-Planar T*',''), 'Distagon T*', '') text, cnt,
 	       case 
 		   when cnt between 1 and 10 then 1
 		   when cnt between 11 and 20 then 2
@@ -191,13 +191,13 @@ func (db *PictureDb) drillByTags(tags ...interface{}) Gallery {
 	defer rows.Close()
 	for rows.Next() {
 
-		var tag, colorStyle string
+		var tag, colorStyle, text string
 		var cnt, cntGrp int
-		err = rows.Scan(&tag, &cnt, &cntGrp, &colorStyle)
+		err = rows.Scan(&tag, &text, &cnt, &cntGrp, &colorStyle)
 		if err != nil {
 			log.Println(err)
 		}
-		sel.Tags = append(sel.Tags, Word{Text: tag, Weight: cntGrp, Color: colorStyle, Count: cnt, Link: options.link + "/query?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
+		sel.Tags = append(sel.Tags, Word{Text: text, Weight: cntGrp, Color: colorStyle, Count: cnt, Link: options.link + "/query?" + strings.TrimPrefix(params+"&tag="+tag, "&")})
 	}
 	err = rows.Err()
 	if err != nil {
