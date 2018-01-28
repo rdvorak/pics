@@ -37,6 +37,7 @@ func main() {
 	gin.SetMode("debug")
 	router := gin.Default()
 	router.StaticFS("/gallery/jquery", http.Dir("jquery"))
+	router.StaticFS("/gallery/lightgallery", http.Dir("lightgallery"))
 	router.StaticFS("/gallery/folio", http.Dir("folio"))
 	router.StaticFS("/pics", http.Dir(options.Pics))
 	router.StaticFS("/thums", http.Dir(options.Thums))

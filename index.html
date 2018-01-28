@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="UTF-8">
     <title>Gallery</title>
-    <link rel="stylesheet" href="lightgallery/css/lightgallery.css">
-    <script src="lightgallery/js/lightgallery.min.js"></script>
+    <link rel="stylesheet" href="/gallery/lightgallery/css/lightgallery.css">
+    <script src="/gallery/lightgallery/js/lightgallery.min.js"></script>
 
     <style>
       body {
@@ -73,7 +73,7 @@ a:hover {
 	</head>
 	<body>
    <div id="main"> 
-    <div class="galleria">
+    <div id="images" class="galleria">
       {{range .Images}}<a href="{{ .Image}}"><img src="{{ .Thumb}}"/></a>{{end}}
     </div>
     <div class="words">
@@ -82,6 +82,6 @@ a:hover {
    </div>
 	</body>
     <script>
-      lightGallery(document.getElementById('galleria'));
+      lightGallery(document.getElementById('images'));
   </script>
 </html>
