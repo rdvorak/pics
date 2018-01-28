@@ -118,6 +118,14 @@ func (p *Picture) ParseMetadata(m *Metadata) {
 	tags = append(tags, Tag{meta: "Year", tag: p.Year})
 	tags = append(tags, Tag{meta: "Month", tag: options.MonthName[p.Month]})
 
+	if dims := strings.Split(m.ImageSize, "x"); len(dims) == 2 {
+		if dims[0] > dims[1] {
+			tags = append(tags, Tag{meta: "Orientation", tag: "Horizontal"})
+		} else {
+			tags = append(tags, Tag{meta: "Orientation", tag: "Vertical"})
+		}
+	}
+
 	for i := range tags {
 		tags[i].source = 1
 	}
