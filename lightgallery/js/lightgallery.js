@@ -1,5 +1,5 @@
 /**!
- * lightgallery.js | 1.0.0 | October 5th 2016
+ * lightgallery.js | 1.0.2 | January 14th 2018
  * http://sachinchoolur.github.io/lightgallery.js/
  * Copyright (c) 2016 Sachin N; 
  * @license GPLv3 
